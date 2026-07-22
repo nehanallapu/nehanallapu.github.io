@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nursing Home Compliance &amp; Patient Safety — Neha Nallapu</title>
+  <meta name="description" content="Case study: analysing 418,479 CMS nursing-home deficiency citations in PostgreSQL and Tableau — harm-level modeling, days-to-correct, and the data-quality judgment calls behind the numbers.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/styles.css">
+
+  <!-- Tableau Embedding API v3 -->
+  <script type="module" src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+</head>
+<body>
+  <a class="skip" href="#doc-main">Skip to content</a>
+
+  <main class="doc" id="doc-main">
+    <a class="doc-back" href="index.html#projects">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 10H5M9 5l-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to projects
+    </a>
+
+    <header class="doc-hero">
+      <p class="doc-kicker">Case study · Health informatics</p>
+      <h1 class="doc-title">Nursing Home Compliance &amp; Patient Safety</h1>
+      <p class="doc-standfirst">
+        A two-page Tableau dashboard built on 418,479 CMS nursing-home deficiency citations —
+        from a 157&nbsp;MB raw CSV, through a typed PostgreSQL schema and derived harm-level
+        fields, to an interactive view of where care falls short and how long it takes to fix.
+      </p>
+
+      <div class="doc-statrow">
+        <div class="doc-stat"><b data-count="418479">0</b><span>citations analysed</span></div>
+        <div class="doc-stat"><b data-count="29" data-suffix=" d">0</b><span>median to correction</span></div>
+        <div class="doc-stat"><b data-count="59" data-suffix=" d">0</b><span>95th percentile</span></div>
+        <div class="doc-stat"><b data-count="1712">0</b><span>with no CAP on file</span></div>
+      </div>
+    </header>
+
+    <!-- Problem -->
+    <section class="doc-section">
+      <h2>The question</h2>
+      <div class="doc-body">
+        <p>
+          Every U.S. nursing home is surveyed for health deficiencies, and CMS publishes the
+          results openly. But the raw file is a flat list of hundreds of thousands of citations —
+          hard to read as a story about <strong>where residents are most at risk</strong> and
+          <strong>how reliably problems get corrected</strong>. I set out to turn that file into a
+          dashboard a compliance or quality lead could actually use to spot patterns and outliers.
+        </p>
+      </div>
+    </section>
+
+    <!-- Data & method -->
+    <section class="doc-section">
+      <h2>Data &amp; method</h2>
+      <div class="doc-body">
+        <p>
+          Source: the <strong>CMS Provider Data Catalog</strong>, Health Deficiencies dataset
+          (<code>r5ix-sfxw</code>) — a 157&nbsp;MB CSV of 418,479 citations.
+        </p>
+        <ul class="doc-list">
+          <li>Loaded into <strong>PostgreSQL 18</strong> with a typed schema, keeping <code>CCN</code> and <code>ZIP</code> as text so leading zeros survive; bulk-loaded via <code>\copy</code>.</li>
+          <li>Built derived fields: <strong>harm level</strong> from the CMS A–L scope-and-severity grid, <strong>CAP status</strong> (corrective-action-plan on file or not), and <strong>days-to-correct</strong> from survey to correction date.</li>
+          <li>Added a <strong>RANK table calculation</strong> so top-N views stay responsive to whatever filters the user applies.</li>
+          <li>Built a <strong>two-page Tableau dashboard</strong> with cross-sheet filter actions, click-to-filter from a US map, severity filtering, and navigation buttons between pages.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Live dashboard -->
+    <section class="doc-section">
+      <h2>The live dashboard</h2>
+      <div class="doc-body" style="margin-bottom:16px">
+        <p>Interactive and embedded straight from Tableau Public — click the map, filter by severity, and use the in-viz buttons to move between the two pages.</p>
+      </div>
+      <div class="viz-frame">
+        <tableau-viz
+          id="tableauViz"
+          src="https://public.tableau.com/views/Patient_Safety_Compliance/ComplianceOverview"
+          width="100%"
+          height="700"
+          toolbar="bottom"
+          hide-tabs>
+          <div class="viz-fallback">
+            <p>The interactive dashboard didn't load here.<br>
+            <a href="https://public.tableau.com/app/profile/neha.nallapu/viz/Patient_Safety_Compliance/ComplianceOverview" target="_blank" rel="noopener">Open it on Tableau Public →</a></p>
+          </div>
+        </tableau-viz>
+      </div>
+    </section>
+
+    <!-- What the data shows -->
+    <section class="doc-section">
+      <h2>What the data shows</h2>
+      <div class="doc-body">
+        <p>
+          Corrections are usually quick — a <strong>median of 29 days</strong> from survey to
+          correction, with the 95th percentile at <strong>59 days</strong>. But
+          <strong>1,712 citations have no corrective-action plan on file</strong>, and
+          <strong>2.45% of those are immediate-jeopardy</strong> findings — the highest-severity
+          band, where a resident's health or safety is at serious risk.
+        </p>
+        <p>The most-cited deficiencies point squarely at everyday safety fundamentals:</p>
+        <div class="project-stats">
+          <div class="pill"><b>23,906</b><span>F0880 · infection prevention</span></div>
+          <div class="pill"><b>21,289</b><span>F0689 · accident hazards</span></div>
+          <div class="pill"><b>19,968</b><span>F0812 · food safety</span></div>
+        </div>
+      </div>
+
+      <h3 class="section-sub" style="margin-top:34px">Severity across the A–L grid</h3>
+      <div class="doc-body" style="margin-bottom:14px">
+        <p>Citations concentrate in the middle of the scope-and-severity grid (D–F, actual or potential harm), thinning toward the immediate-jeopardy bands J–L.</p>
+      </div>
+      <div class="sev-strip">
+        <div class="sev-row"><span class="sev-label"><b>A</b> no harm</span><span class="sev-track"><span class="sev-fill" style="width:0%"></span></span><span class="sev-val">0</span></div>
+        <div class="sev-row"><span class="sev-label"><b>B</b></span><span class="sev-track"><span class="sev-fill" style="width:2%"></span></span><span class="sev-val">5,077</span></div>
+        <div class="sev-row"><span class="sev-label"><b>C</b></span><span class="sev-track"><span class="sev-fill" style="width:1.7%"></span></span><span class="sev-val">4,463</span></div>
+        <div class="sev-row"><span class="sev-label"><b>D</b></span><span class="sev-track"><span class="sev-fill" style="width:100%"></span></span><span class="sev-val">262,910</span></div>
+        <div class="sev-row"><span class="sev-label"><b>E</b></span><span class="sev-track"><span class="sev-fill" style="width:35.8%"></span></span><span class="sev-val">94,108</span></div>
+        <div class="sev-row"><span class="sev-label"><b>F</b></span><span class="sev-track"><span class="sev-fill" style="width:11%"></span></span><span class="sev-val">28,834</span></div>
+        <div class="sev-row"><span class="sev-label"><b>G</b> actual harm</span><span class="sev-track"><span class="sev-fill" style="width:4.9%"></span></span><span class="sev-val">12,946</span></div>
+        <div class="sev-row"><span class="sev-label"><b>H</b></span><span class="sev-track"><span class="sev-fill" style="width:0.8%"></span></span><span class="sev-val">460</span></div>
+        <div class="sev-row"><span class="sev-label"><b>I</b></span><span class="sev-track"><span class="sev-fill" style="width:0.8%"></span></span><span class="sev-val">20</span></div>
+        <div class="sev-row"><span class="sev-label"><b>J</b> jeopardy</span><span class="sev-track"><span class="sev-fill" style="width:2.6%"></span></span><span class="sev-val">6,844</span></div>
+        <div class="sev-row"><span class="sev-label"><b>K</b></span><span class="sev-track"><span class="sev-fill" style="width:0.9%"></span></span><span class="sev-val">2,170</span></div>
+        <div class="sev-row"><span class="sev-label"><b>L</b></span><span class="sev-track"><span class="sev-fill" style="width:0.8%"></span></span><span class="sev-val">647</span></div>
+      </div>
+    </section>
+
+    <!-- Judgment calls -->
+    <section class="doc-section">
+      <h2>Judgment calls</h2>
+      <div class="doc-body">
+        <p>
+          The numbers only mean something if the data behind them is honest. Three things in this
+          file would mislead a reader who took it at face value — so I flagged them rather than
+          quietly smoothing them over:
+        </p>
+      </div>
+
+      <div class="callout">
+        <h4>The 6× "rise" in deficiencies is a coverage artifact, not a trend</h4>
+        <p>
+          Distinct facility counts grow from 40 in 2017 to 12,168 in 2024 — because the file keeps
+          only recent survey cycles per facility, so earlier years are sparsely represented. The
+          apparent surge is the dataset filling in, not care getting worse. I scoped the analysis
+          to <strong>2023–2025</strong>, where coverage is stable.
+        </p>
+      </div>
+      <div class="callout">
+        <h4>October 2025's severity "spike" is a low-volume illusion</h4>
+        <p>
+          That month has just 2,432 surveys versus a typical ~9,000, so percentage-based severity
+          swings wildly on a small base. I <strong>flagged it rather than smoothing it</strong>, so
+          the shape of the data stays visible.
+        </p>
+      </div>
+      <div class="callout">
+        <h4>1.5% of records correct before they're surveyed</h4>
+        <p>
+          These have a correction date earlier than the survey date — impossible in practice, so I
+          treated them as data-quality issues and <strong>excluded them from the duration
+          analysis</strong> rather than letting negative durations distort the medians.
+        </p>
+      </div>
+    </section>
+
+    <footer class="doc-foot">
+      <div class="project-links">
+        <a class="textlink" href="https://public.tableau.com/app/profile/neha.nallapu/viz/Patient_Safety_Compliance/ComplianceOverview" target="_blank" rel="noopener">
+          View on Tableau Public
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 13L13 7M13 7H8M13 7v5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="textlink textlink--muted" href="index.html">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 10H5M9 5l-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back to portfolio
+        </a>
+      </div>
+    </footer>
+  </main>
+
+  <script src="assets/js/main.js" defer></script>
+</body>
+</html>
