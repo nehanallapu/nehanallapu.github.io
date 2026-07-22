@@ -128,7 +128,7 @@ ul, ol { list-style: none; padding: 0; }
   flex-shrink: 0;
   overflow: hidden;
 }
-.avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-box img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
 
 .name-block .name {
   color: var(--white-2);
