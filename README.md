@@ -15,7 +15,6 @@ assets/
   css/styles.css               # single stylesheet, CSS custom properties
   js/main.js                   # tab nav, mobile contacts toggle, count-up, contact form
   img/avatar.svg               # placeholder headshot — replace with a real photo
-  <img width="1402" height="1122" alt="image" src="https://github.com/user-attachments/assets/2c1dd082-22c2-40f2-87ed-a633fd38b957" />
 # linked by the "Download résumé" button
 favicon.svg
 .nojekyll                      # serve files as-is (skip Jekyll processing)
